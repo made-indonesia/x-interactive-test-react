@@ -1,0 +1,19 @@
+{
+    "base": "./src",
+    "commands": {
+        "component": {
+            "__name__": [
+                "component/__name__.component.tsx",
+                "component/index.ts"
+            ]
+        },
+        "page": {
+            "__name__": [
+                "page/page.tsx"
+            ]
+        },
+        "context": [
+            "context/__name__.context.tsx"
+        ]
+    }
+}
