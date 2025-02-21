@@ -1,8 +1,8 @@
 import typography from "@tailwindcss/typography";
-import type { Config } from "tailwindcss";
+import type {Config} from "tailwindcss";
 import animate from "tailwindcss-animate";
 import plugin from "tailwindcss/plugin";
-import { CSSRuleObject } from "tailwindcss/types/config";
+import {CSSRuleObject} from "tailwindcss/types/config";
 
 export default {
   content: [
@@ -12,7 +12,7 @@ export default {
     "./src/_modules/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   plugins: [
-    plugin(function ({ addComponents, addUtilities, theme }) {
+    plugin(function ({addComponents, addUtilities, theme}) {
       addComponents({
         ".fake-container-left": {
           [`@media (min-width: ${theme("container.screens.xl")})`]: {
@@ -101,7 +101,7 @@ export default {
         "error-danger-600": "#d92d20ff",
         "error-danger-700": "#b42318ff",
         "error-danger-800": "#912018ff",
-        "error-danger-900": "#7a271aff",
+        "error-danger-900": "#9a1a1e",
         "gray-100": "#f2f4f7ff",
         "gray-200": "#eaecf0ff",
         "gray-25": "#fcfcfdff",
