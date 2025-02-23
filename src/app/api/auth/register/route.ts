@@ -1,34 +1,26 @@
-import {NextRequest, NextResponse} from "next/server";
-import bcrypt from "bcryptjs";
-import {users} from "@/lib/users";
+// app/api/register/route.js
+import {NextResponse} from "next/server";
 
-// Handle POST requests
-export async function POST(req: NextRequest) {
-  // console.log("email");
-  const {email, password} = await req.json();
-  const userExists = users.find(user => user.email === email);
+export async function POST(request) {
+  const {email, password} = await request.json();
 
-  console.log(email, password);
-
-  if (userExists) {
-    console.log("User already exists");
-    return NextResponse.json({message: "User already exists"}, {status: 400});
-  }
-
-  const hashedPassword = bcrypt.hashSync(password, 10);
-  users.push({
-    id: users.length + 1,
-    email,
-    password: hashedPassword,
+  // Panggil API Be Syimphony untuk register
+  const response = await fetch("https://be-syimphony.com/api/register", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({email, password}),
   });
 
-  return NextResponse.json(
-    {message: "User registered successfully"},
-    {status: 201},
-  );
-}
+  const data = await response.json();
 
-// Handle unsupported methods (optional)
-export function OPTIONS() {
-  return NextResponse.json({message: "OK"}, {status: 200});
+  if (response.ok) {
+    return NextResponse.json({message: "Registration successful"});
+  } else {
+    return NextResponse.json(
+      {error: data.error || "Registration failed"},
+      {status: 400},
+    );
+  }
 }

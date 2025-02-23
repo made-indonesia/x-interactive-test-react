@@ -34,6 +34,34 @@ const validationSchema = Yup.object().shape({
 export default function Login() {
   const router = useRouter();
 
+  const handleSSOLogin = async () => {
+    // Arahkan pengguna ke endpoint SSO
+    const response = await fetch("/api/exact-sso", {
+      method: "GET",
+    });
+    const data = await response.json();
+
+    if (data.url) {
+      // Redirect pengguna ke halaman login Exact Online
+      window.location.href = data.url;
+    }
+  };
+
+  // const handleLogin = async () => {
+  //   const response = await fetch("/api/login", {
+  //     method: "POST",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //     body: JSON.stringify({email, password}),
+  //   });
+  //   const data = await response.json();
+
+  //   if (data.accessToken) {
+  //     router.push("/dashboard");
+  //   }
+  // };
+
   const {
     register,
     handleSubmit,
@@ -101,6 +129,8 @@ export default function Login() {
           href={"/register"}>
           Don't have an account? Register here
         </Body>
+
+        <button onClick={handleSSOLogin}>Login with Exact Online</button>
       </div>
     </div>
   );

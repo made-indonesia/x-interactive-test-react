@@ -9,6 +9,9 @@ import {useSession, signOut} from "next-auth/react";
 import {useRouter} from "next/navigation";
 import {useState, useEffect} from "react";
 
+// import { cookies } from "next/headers";
+// import { redirect } from "next/navigation";
+
 export default function Dashboard() {
   const {data: session, status} = useSession();
   const router = useRouter();
@@ -25,6 +28,28 @@ export default function Dashboard() {
       signOut({callbackUrl: "/login"});
     }
   };
+
+  // const token = cookies().get("accessToken")?.value;
+
+  // if (!token) {
+  //   redirect("/login");
+  // }
+
+  // // Ambil data pengguna
+  // const response = await fetch("/api/me", {
+  //   method: "GET",
+  //   headers: {
+  //     Authorization: `Bearer ${token}`,
+  //   },
+  // });
+  // const user = await response.json();
+
+  // const handleLogout = async () => {
+  //   // Panggil endpoint logout
+  //   await fetch("/api/logout", { method: "GET" });
+  //   // Redirect ke halaman login
+  //   router.push("/login");
+  // };
 
   return (
     <div className="flex items-center justify-center min-h-screen">

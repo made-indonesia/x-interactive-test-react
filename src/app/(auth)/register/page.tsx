@@ -49,6 +49,27 @@ export default function Register() {
     }
   };
 
+  // const handleRegister = async () => {
+  //   // Kirim data register ke API Be Syimphony
+  //   const response = await fetch("/api/register", {
+  //     method: "POST",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //     body: JSON.stringify({ email, password }),
+  //   });
+
+  //   const data = await response.json();
+
+  //   if (response.ok) {
+  //     // Redirect ke halaman login setelah registrasi berhasil
+  //     router.push("/login");
+  //   } else {
+  //     // Tampilkan pesan error jika registrasi gagal
+  //     alert(data.error || "Registration failed");
+  //   }
+  // };
+
   return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="p-6 bg-white rounded-lg shadow-lg">
