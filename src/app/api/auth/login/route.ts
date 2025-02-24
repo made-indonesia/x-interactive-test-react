@@ -20,7 +20,6 @@ export async function POST(request: Request) {
     });
 
     const {token} = response.data;
-    console.log(token);
     if (!token) {
       return NextResponse.json(
         {error: "No access token received"},

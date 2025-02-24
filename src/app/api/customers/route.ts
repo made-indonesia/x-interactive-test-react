@@ -12,7 +12,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const response = await axiosInstance.get("/auth/me", {
+    const response = await axiosInstance.get("/customers", {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
   } catch (error) {
     if (axios.isAxiosError(error)) {
       return NextResponse.json(
-        {error: error.response?.data?.error || "Failed to fetch user"},
+        {error: error.response?.data?.error || "Failed to fetch customers"},
         {status: error.response?.status || 400},
       );
     }

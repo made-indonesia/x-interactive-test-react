@@ -10,6 +10,7 @@ import * as Yup from "yup";
 import Link from "next/link";
 import Body from "@/components/atoms/Body";
 import axios from "axios";
+import {useState} from "react";
 
 type FormData = {
   email: string;
@@ -32,8 +33,10 @@ const validationSchema = Yup.object().shape({
 
 export default function Login() {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false); // Loading state
 
   const handleSSOLogin = async () => {
+    setIsLoading(true);
     try {
       const response = await axios.get("/api/exact-sso");
 
@@ -44,16 +47,38 @@ export default function Login() {
       }
     } catch (error: any) {
       alert(error.response?.data?.error || "SSO Login failed");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const checkLoginExact = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get("/api/me/");
+      const {is_login_exact} = response.data;
+
+      if (is_login_exact) {
+        window.location.href = "/";
+      } else {
+        await handleSSOLogin();
+      }
+    } catch (error: any) {
+      alert(error.response?.data?.error || "Failed to check login status");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleLogin = async (data: {email: string; password: string}) => {
+    setIsLoading(true);
     try {
       const response = await axios.post("/api/auth/login", data);
-
-      await handleSSOLogin();
+      await checkLoginExact();
     } catch (error: any) {
       alert(error.response?.data?.error || "Login failed");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -66,23 +91,53 @@ export default function Login() {
     resolver: yupResolver(validationSchema),
   });
 
-  const onSubmit = async (data: FormData) => {
-    const result = await signIn("credentials", {
-      redirect: false,
-      email: data.email,
-      password: data.password,
-    });
+  const handleCallback = async () => {
+    setIsLoading(true);
+    try {
+      const code = "your_code_here"; // Replace with actual code
+      const state = "your_state_here"; // Replace with actual state
+      const bearerToken = "your_bearer_token_here"; // Replace with actual token
 
-    if (result?.error) {
-      alert(result.error);
-    } else {
-      router.push("/");
+      if (!bearerToken) {
+        console.error("Bearer token is missing");
+        return;
+      }
+
+      const response = await fetch(
+        `https://staging-symfony.admin-developer.com/connect/exact/callback?code=${encodeURIComponent(
+          code,
+        )}&state=${encodeURIComponent(state)}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${bearerToken}`,
+          },
+          credentials: "include",
+        },
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Error:", errorData.error || "Unknown error");
+        return;
+      }
+
+      const data = await response.json();
+      console.log("Success:", data);
+    } catch (error) {
+      console.error(
+        "Fetch error:",
+        error instanceof Error ? error.message : error,
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen ">
-      <div className="p-6 bg-white rounded-lg shadow-lg flex align-center justify-center flex-col w-[25rem]">
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="p-6 bg-white rounded-lg shadow-lg flex flex-col w-[25rem]">
         <Heading
           variant="h4"
           weight="medium"
@@ -111,8 +166,21 @@ export default function Login() {
             className="text-black"
           />
 
-          <Button size="lg" className="w-full">
-            Sign In
+          <Button
+            size="lg"
+            className="w-full"
+            type="submit"
+            disabled={isLoading}>
+            {isLoading ? "Loading..." : "Sign In"}
+          </Button>
+
+          <Button
+            type="button"
+            size="lg"
+            className="w-full"
+            onClick={handleCallback}
+            disabled={isLoading}>
+            {isLoading ? "Loading..." : "Test Callback"}
           </Button>
         </form>
 

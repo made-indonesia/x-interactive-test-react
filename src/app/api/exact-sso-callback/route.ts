@@ -23,7 +23,10 @@ export async function GET(request: Request) {
   console.log(bearerToken);
 
   if (!bearerToken) {
-    return NextResponse.json({error: "Bearer token is missing"}, {status: 401});
+    return NextResponse.json(
+      {error: "Bearer token is missingss"},
+      {status: 401},
+    );
   }
 
   try {
@@ -37,6 +40,7 @@ export async function GET(request: Request) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${bearerToken}`,
         },
+        credentials: "include",
       },
     );
 
@@ -44,7 +48,7 @@ export async function GET(request: Request) {
 
     if (!response.ok) {
       return NextResponse.json(
-        {error: "Failed to handle SSO callback"},
+        {error: response.statusText},
         {status: response.status},
       );
     }
