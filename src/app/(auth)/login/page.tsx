@@ -9,6 +9,7 @@ import {yupResolver} from "@hookform/resolvers/yup";
 import * as Yup from "yup";
 import Link from "next/link";
 import Body from "@/components/atoms/Body";
+import axios from "axios";
 
 type FormData = {
   email: string;
@@ -16,13 +17,11 @@ type FormData = {
 };
 
 const defaultValues = {
-  aggrement: false,
   email: "",
   password: "",
 };
 
 const validationSchema = Yup.object().shape({
-  aggrement: Yup.boolean(),
   email: Yup.string()
     .email("Invalid email format")
     .required("Email is required"),
@@ -35,32 +34,28 @@ export default function Login() {
   const router = useRouter();
 
   const handleSSOLogin = async () => {
-    // Arahkan pengguna ke endpoint SSO
-    const response = await fetch("/api/exact-sso", {
-      method: "GET",
-    });
-    const data = await response.json();
+    try {
+      const response = await axios.get("/api/exact-sso");
 
-    if (data.url) {
-      // Redirect pengguna ke halaman login Exact Online
-      window.location.href = data.url;
+      if (response.data.auth_url) {
+        window.location.href = response.data.auth_url;
+      } else {
+        alert("SSO URL not found");
+      }
+    } catch (error: any) {
+      alert(error.response?.data?.error || "SSO Login failed");
     }
   };
 
-  // const handleLogin = async () => {
-  //   const response = await fetch("/api/login", {
-  //     method: "POST",
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //     },
-  //     body: JSON.stringify({email, password}),
-  //   });
-  //   const data = await response.json();
+  const handleLogin = async (data: {email: string; password: string}) => {
+    try {
+      const response = await axios.post("/api/auth/login", data);
 
-  //   if (data.accessToken) {
-  //     router.push("/dashboard");
-  //   }
-  // };
+      await handleSSOLogin();
+    } catch (error: any) {
+      alert(error.response?.data?.error || "Login failed");
+    }
+  };
 
   const {
     register,
@@ -87,16 +82,16 @@ export default function Login() {
 
   return (
     <div className="flex items-center justify-center min-h-screen ">
-      <div className="p-6 bg-white rounded-lg shadow-lg flex align-center justify-center flex-col ">
+      <div className="p-6 bg-white rounded-lg shadow-lg flex align-center justify-center flex-col w-[25rem]">
         <Heading
           variant="h4"
           weight="medium"
           as="h1"
-          className="text-black mb-3">
-          Login
+          className="text-black mb-3 text-center">
+          Sign In
         </Heading>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(handleLogin)} className="space-y-4">
           <FieldInput
             label="Email"
             placeholder="email"
@@ -117,20 +112,26 @@ export default function Login() {
           />
 
           <Button size="lg" className="w-full">
-            Login
+            Sign In
           </Button>
         </form>
 
         <Body
           variant="md"
           weight="medium"
-          className="text-primary-500"
-          as={Link}
-          href={"/register"}>
-          Don't have an account? Register here
+          className="text-black mt-2 text-center"
+          as="p">
+          Don't have an account?
+          <Body
+            variant="md"
+            weight="medium"
+            className="text-primary-500 mt-2 text-center"
+            as={Link}
+            href={"/register"}>
+            {" "}
+            Sign up here
+          </Body>
         </Body>
-
-        <button onClick={handleSSOLogin}>Login with Exact Online</button>
       </div>
     </div>
   );

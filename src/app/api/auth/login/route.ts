@@ -1,28 +1,45 @@
 import {NextResponse} from "next/server";
-import {cookies} from "next/headers";
+import axiosInstance from "@/lib/axiosInstance";
 
-export async function POST(request) {
-  const {email, password} = await request.json();
+interface LoginRequest {
+  email: string;
+  password: string;
+}
 
-  // Panggil API Be Syimphony untuk login
-  const response = await fetch("https://be-syimphony.com/api/login", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({email, password}),
-  });
+interface LoginResponse {
+  token?: string;
+  error?: string;
+}
 
-  const data = await response.json();
+export async function POST(request: Request) {
+  try {
+    const {email, password}: LoginRequest = await request.json();
+    const response = await axiosInstance.post<LoginResponse>("/auth/login", {
+      email,
+      password,
+    });
 
-  // Simpan token di cookie
-  if (data.accessToken) {
-    cookies().set("accessToken", data.accessToken, {
+    const {token} = response.data;
+    console.log(token);
+    if (!token) {
+      return NextResponse.json(
+        {error: "No access token received"},
+        {status: 401},
+      );
+    }
+
+    // ✅ Create a response and set the cookie
+    const res = NextResponse.json({success: true});
+
+    res.cookies.set("jwtToken", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 24 * 7, // 1 minggu
+      maxAge: 60 * 60 * 24 * 7, // 1 week
+      path: "/",
     });
-  }
 
-  return NextResponse.json(data);
+    return res;
+  } catch (error) {
+    return NextResponse.json({error: "Login failed"}, {status: 500});
+  }
 }

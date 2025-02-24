@@ -8,6 +8,7 @@ import {useRouter} from "next/navigation";
 import {useForm} from "react-hook-form";
 import {yupResolver} from "@hookform/resolvers/yup";
 import * as Yup from "yup";
+import axios from "axios";
 
 type FormData = {
   email: string;
@@ -35,7 +36,6 @@ export default function Register() {
   });
 
   const onSubmit = async (data: FormData) => {
-    console.log(data);
     const response = await fetch("/api/auth/register", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
@@ -49,39 +49,32 @@ export default function Register() {
     }
   };
 
-  // const handleRegister = async () => {
-  //   // Kirim data register ke API Be Syimphony
-  //   const response = await fetch("/api/register", {
-  //     method: "POST",
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //     },
-  //     body: JSON.stringify({ email, password }),
-  //   });
+  const handleRegister = async (data: FormData) => {
+    try {
+      const response = await axios.post("/api/auth/register", data);
 
-  //   const data = await response.json();
-
-  //   if (response.ok) {
-  //     // Redirect ke halaman login setelah registrasi berhasil
-  //     router.push("/login");
-  //   } else {
-  //     // Tampilkan pesan error jika registrasi gagal
-  //     alert(data.error || "Registration failed");
-  //   }
-  // };
+      router.push("/login");
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        alert(error.response?.data?.error || "Registration failed");
+      } else {
+        alert("An unexpected error occurred");
+      }
+    }
+  };
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="p-6 bg-white rounded-lg shadow-lg">
+    <div className="flex items-center justify-center min-h-screen ">
+      <div className="p-6 bg-white rounded-lg shadow-lg flex align-center justify-center flex-col w-[25rem]">
         <Heading
           variant="h4"
           weight="medium"
           as="h1"
-          className="text-black mb-3">
-          Register
+          className="text-black mb-3 text-center">
+          Sign Up
         </Heading>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(handleRegister)} className="space-y-4">
           <FieldInput
             label="Email"
             placeholder="email"
@@ -102,17 +95,25 @@ export default function Register() {
           />
 
           <Button size="lg" className="w-full">
-            Register
+            Sign Up
           </Button>
         </form>
 
         <Body
           variant="md"
           weight="medium"
-          className="text-primary-500"
-          as={Link}
-          href={"/login"}>
-          Already have an account? Login here
+          className="text-black mt-4 text-center"
+          as="p">
+          Already have an account?
+          <Body
+            variant="md"
+            weight="medium"
+            className="text-primary-500 mt-4 text-center"
+            as={Link}
+            href={"/login"}>
+            {" "}
+            Sign up here
+          </Body>
         </Body>
       </div>
     </div>

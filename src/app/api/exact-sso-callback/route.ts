@@ -1,66 +1,84 @@
-// app/api/exact-sso-callback/route.js
 import {NextResponse} from "next/server";
+import {cookies} from "next/headers";
 
-export async function GET(request) {
-  // Ambil authorization code dari query parameter
+export async function GET(request: Request) {
   const {searchParams} = new URL(request.url);
   const code = searchParams.get("code");
-
-  if (!code) {
+  const state = searchParams.get("state");
+  console.log(
+    "tessssssssssssssssssssssssssssssssssssssssssssssssssssssss",
+    // code,
+    // state,
+  );
+  if (!code || !state) {
     return NextResponse.json(
-      {error: "Authorization code is missing"},
+      {error: "Authorization code or state is missing"},
       {status: 400},
     );
   }
 
-  // Data untuk menukar code dengan access token
-  //    const tokenUrl = "https://start.exactonline.nl/api/oauth2/token";
-  //    const params = new URLSearchParams();
-  //    params.append("client_id", process.env.EXACT_ONLINE_CLIENT_ID);
-  //    params.append("client_secret", process.env.EXACT_ONLINE_CLIENT_SECRET);
-  //    params.append("grant_type", "authorization_code");
-  //    params.append("code", code);
-  //    params.append("redirect_uri", process.env.EXACT_ONLINE_REDIRECT_URI);
+  // Get Bearer token from cookies
+  const cookieStore = await cookies();
+  const bearerToken = cookieStore.get("jwtToken")?.value;
+  console.log(bearerToken);
 
-  //    // Panggil API Exact Online untuk menukar code dengan access token
-  //    const response = await fetch(tokenUrl, {
-  //      method: "POST",
-  //      headers: {
-  //        "Content-Type": "application/x-www-form-urlencoded",
-  //      },
-  //      body: params,
-  //    });
+  if (!bearerToken) {
+    return NextResponse.json({error: "Bearer token is missing"}, {status: 401});
+  }
 
-  // Panggil API Be Syimphony untuk menangani callback
-  const response = await fetch(
-    `https://be-syimphony.com/api/exact-sso-callback?code=${code}`,
-    {
-      method: "GET",
-    },
-  );
+  try {
+    const response = await fetch(
+      `https://staging-symfony.admin-developer.com/connect/exact/callback?code=${encodeURIComponent(
+        code,
+      )}&state=${encodeURIComponent(state)}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${bearerToken}`,
+        },
+      },
+    );
 
-  // Jika respons dari API Be Syimphony gagal
-  if (!response.ok) {
+    console.log("state", response);
+
+    if (!response.ok) {
+      return NextResponse.json(
+        {error: "Failed to handle SSO callback"},
+        {status: response.status},
+      );
+    }
+
+    const data = await response.json();
+
+    // console.log("Callback Response:", data);
+
+    const res = NextResponse.redirect("http://localhost:3000/");
+
+    if (data.access_token) {
+      res.cookies.set("accessToken", data.access_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 60 * 60 * 24 * 7, // 1 minggu
+        path: "/",
+      });
+    }
+
+    if (data.refresh_token) {
+      res.cookies.set("refreshToken", data.refresh_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 60 * 60 * 24 * 30, // 30 hari
+        path: "/",
+      });
+    }
+
+    return res;
+  } catch (error: any) {
+    console.error("Callback Error:", error);
     return NextResponse.json(
-      {error: "Failed to handle SSO callback"},
+      {error: "An unexpected error occurred"},
       {status: 500},
     );
   }
-
-  // Ambil data dari API Be Syimphony
-  const data = await response.json();
-
-  // Simpan access token di cookie (opsional)
-  if (data.accessToken) {
-    const cookies = new NextResponse();
-    cookies.cookies.set("accessToken", data.accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 24 * 7, // 1 minggu
-    });
-    return cookies;
-  }
-
-  // Kembalikan data ke frontend
-  return NextResponse.json(data);
 }

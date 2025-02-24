@@ -1,24 +1,30 @@
-// // middleware.js
-// import {NextResponse} from "next/server";
-// import {cookies} from "next/headers";
+import {NextResponse, NextRequest} from "next/server";
 
-// export function middleware(request) {
-//   const token = cookies().get("accessToken")?.value;
+export function middleware(request: NextRequest) {
+  const token = request.cookies.get("accessToken")?.value;
+  const currentPath = request.nextUrl.pathname;
 
-//   // Daftar route yang perlu diproteksi
-//   const protectedRoutes = ["/dashboard", "/profile"];
+  console.log("Current Path:", currentPath);
+  console.log("Access Token:", token);
 
-//   // Jika pengguna mencoba mengakses route yang diproteksi dan tidak memiliki token
-//   if (protectedRoutes.includes(request.nextUrl.pathname) && !token) {
-//     // Redirect ke halaman login
-//     return NextResponse.redirect(new URL("/login", request.url));
-//   }
+  // Protected routes
+  const protectedRoutes = ["/"];
 
-//   // Jika pengguna sudah login dan mencoba mengakses halaman login/register
-//   if (["/login", "/register"].includes(request.nextUrl.pathname) && token) {
-//     // Redirect ke halaman dashboard
-//     return NextResponse.redirect(new URL("/dashboard", request.url));
-//   }
+  // Redirect to login if accessing protected routes without a token
+  if (protectedRoutes.includes(currentPath) && !token) {
+    console.log("Redirecting to /login");
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
 
-//   return NextResponse.next();
-// }
+  // Redirect to root if already logged in and accessing login/register
+  if (["/login", "/register"].includes(currentPath) && token) {
+    console.log("User already logged in, redirecting to /");
+    return NextResponse.redirect(new URL("/", request.url));
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: ["/", "/login", "/register"],
+};

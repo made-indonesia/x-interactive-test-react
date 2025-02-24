@@ -27,8 +27,8 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-error-danger-900 py-10 px-4`}>
-        {/* {children} */}
-        <Session>{children}</Session>
+        {children}
+        {/* <Session>{children}</Session> */}
       </body>
     </html>
   );

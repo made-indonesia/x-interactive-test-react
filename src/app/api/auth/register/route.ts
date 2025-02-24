@@ -1,26 +1,33 @@
-// app/api/register/route.js
+import axiosInstance from "@/lib/axiosInstance";
+import axios from "axios";
 import {NextResponse} from "next/server";
 
-export async function POST(request) {
-  const {email, password} = await request.json();
+interface RegisterRequest {
+  email: string;
+  password: string;
+}
 
-  // Panggil API Be Syimphony untuk register
-  const response = await fetch("https://be-syimphony.com/api/register", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({email, password}),
-  });
+export async function POST(request: Request) {
+  try {
+    const {email, password}: RegisterRequest = await request.json();
 
-  const data = await response.json();
+    const response = await axiosInstance.post("/auth/register", {
+      email,
+      password,
+    });
 
-  if (response.ok) {
     return NextResponse.json({message: "Registration successful"});
-  } else {
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      return NextResponse.json(
+        {error: error.response?.data?.error || "Registration failed"},
+        {status: error.response?.status || 400},
+      );
+    }
+
     return NextResponse.json(
-      {error: data.error || "Registration failed"},
-      {status: 400},
+      {error: "An unexpected error occurred"},
+      {status: 500},
     );
   }
 }
