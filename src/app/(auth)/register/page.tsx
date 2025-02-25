@@ -53,7 +53,7 @@ export default function Register() {
 
   return (
     <div className="flex items-center justify-center min-h-screen ">
-      <div className="p-6 bg-white rounded-lg shadow-lg flex align-center justify-center flex-col w-[25rem]">
+      <div className="p-6 bg-gray-50 rounded-lg shadow-lg flex align-center justify-center flex-col w-[25rem]">
         <Heading
           variant="h4"
           weight="medium"

@@ -27,7 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={` antialiased bg-error-danger-900 py-10 px-4`}>
+      <body className={` antialiased bg-primary-50 py-10 px-4`}>
         {children}
         <ToastContainer
           position="top-right"

@@ -2,6 +2,7 @@
 import Body from "@/components/atoms/Body";
 import Button from "@/components/atoms/Button";
 import Heading from "@/components/atoms/Heading";
+import List from "@/components/atoms/list";
 import FieldInput from "@/components/molecules/FieldInput";
 import {useErrorToast} from "@/hooks/useErrorToast";
 import axios from "axios";
@@ -88,11 +89,6 @@ export default function Dashboard() {
     }
   };
 
-  const handleReset = () => {
-    setCustomerId("");
-    setFilteredCustomers(customers);
-  };
-
   const handleSelectCustomer = async (id: string) => {
     try {
       const response = await axios.get(`/api/customer/${id}`, {
@@ -110,7 +106,7 @@ export default function Dashboard() {
 
   return (
     <div className="flex items-center justify-center min-h-screen">
-      <div className="p-6 bg-white rounded-lg shadow-lg container">
+      <div className="p-6 bg-gray-50 rounded-lg shadow-lg container">
         <div className="flex items-center justify-between">
           <Heading
             variant="h6"
@@ -136,30 +132,34 @@ export default function Dashboard() {
             className="text-black"
             value={customerId}
             onChange={handleFilter}
+            type="search"
           />
-          <Button variant="primary" onClick={handleReset} className="h-fit">
-            Reset
-          </Button>
         </div>
 
         {isLoading ? (
           <div className="mt-6 text-center text-gray-500">Loading...</div>
         ) : (
           <div className="mt-6">
-            <Body as="p" className="text-black mb-2">
+            <Body
+              as="p"
+              className="text-black mb-2 font-medium"
+              weight="medium">
               Customers List
             </Body>
             {filteredCustomers?.length > 0 ? (
-              <ul className="space-y-2">
+              <List type="ul">
                 {filteredCustomers?.map((customer: any) => (
-                  <li
+                  <Body
                     key={customer.id}
-                    className="cursor-pointer p-2 border rounded hover:bg-gray-100 text-black"
+                    as="li"
+                    variant="xs"
+                    weight="medium"
+                    className="cursor-pointer p-2 border rounded hover:bg-gray-100 text-black font-medium list-none"
                     onClick={() => handleSelectCustomer(customer.id)}>
                     {customer.name}
-                  </li>
+                  </Body>
                 ))}
-              </ul>
+              </List>
             ) : (
               <div className="text-gray-500">No customers found.</div>
             )}

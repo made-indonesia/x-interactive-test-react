@@ -75,7 +75,6 @@ export default function Login() {
     setIsLoading(true);
     try {
       const response = await axios.post("/api/auth/login", data);
-      console.log("Login Response:", response.data);
       localStorage.setItem("jwtToken", response.data.token);
       await checkLoginExact();
     } catch (error: any) {
@@ -96,7 +95,7 @@ export default function Login() {
 
   return (
     <div className="flex items-center justify-center min-h-screen">
-      <div className="p-6 bg-white rounded-lg shadow-lg flex flex-col w-[25rem]">
+      <div className="p-6 bg-gray-50 rounded-lg shadow-lg flex flex-col w-[25rem]">
         <Heading
           variant="h4"
           weight="medium"
