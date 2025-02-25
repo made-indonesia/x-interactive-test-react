@@ -28,13 +28,12 @@ export async function POST(request: Request) {
     }
 
     // ✅ Create a response and set the cookie
-    const res = NextResponse.json({success: true});
-
+    const res = NextResponse.json({success: true, token});
     res.cookies.set("jwtToken", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 24 * 7, // 1 week
-      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     });
 
     return res;

@@ -5,11 +5,7 @@ export async function GET(request: Request) {
   const {searchParams} = new URL(request.url);
   const code = searchParams.get("code");
   const state = searchParams.get("state");
-  console.log(
-    "tessssssssssssssssssssssssssssssssssssssssssssssssssssssss",
-    // code,
-    // state,
-  );
+
   if (!code || !state) {
     return NextResponse.json(
       {error: "Authorization code or state is missing"},
@@ -33,7 +29,7 @@ export async function GET(request: Request) {
     const response = await fetch(
       `https://staging-symfony.admin-developer.com/connect/exact/callback?code=${encodeURIComponent(
         code,
-      )}&state=${encodeURIComponent(state)}`,
+      )}`,
       {
         method: "GET",
         headers: {
@@ -44,8 +40,6 @@ export async function GET(request: Request) {
       },
     );
 
-    console.log("state", response);
-
     if (!response.ok) {
       return NextResponse.json(
         {error: response.statusText},
@@ -55,9 +49,9 @@ export async function GET(request: Request) {
 
     const data = await response.json();
 
-    // console.log("Callback Response:", data);
-
-    const res = NextResponse.redirect("http://localhost:3000/");
+    const res = NextResponse.redirect(
+      process.env.NEXT_PUBLIC_API_BASE_URL || "/dashboard",
+    );
 
     if (data.access_token) {
       res.cookies.set("accessToken", data.access_token, {

@@ -1,16 +1,14 @@
 "use client";
-import Body from "@/components/atoms/Body";
 import Button from "@/components/atoms/Button";
 import Heading from "@/components/atoms/Heading";
 import FieldInput from "@/components/molecules/FieldInput";
-import PDFDisplay from "@/components/molecules/PDFDisplay";
 import axios from "axios";
 import {useRouter} from "next/navigation";
 import {useState, useEffect} from "react";
 
 export default function Dashboard() {
   const [customers, setCustomers] = useState([]);
-  const [customerId, setCustomerId] = useState(""); // For the input field
+  const [customerId, setCustomerId] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -18,7 +16,7 @@ export default function Dashboard() {
       try {
         const response = await axios.get("/api/customers");
         setCustomers(response.data.data);
-        console.log("Fetched Customers:", response.data.data); // ✅ Corrected logging
+        console.log("Fetched Customers:", response.data.data);
       } catch (error) {
         console.error("Failed to fetch customers:", error);
       }
@@ -47,8 +45,6 @@ export default function Dashboard() {
 
     try {
       const response = await axios.get(`/api/customer/${customerId}`);
-      console.log("Customer Data:", response.data);
-      // You can use this data in PDFDisplay or another component
     } catch (error) {
       console.error("Failed to fetch customer data:", error);
     }

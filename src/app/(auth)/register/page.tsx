@@ -9,6 +9,7 @@ import {useForm} from "react-hook-form";
 import {yupResolver} from "@hookform/resolvers/yup";
 import * as Yup from "yup";
 import axios from "axios";
+import {useErrorToast} from "@/hooks/useErrorToast";
 
 type FormData = {
   email: string;
@@ -26,6 +27,7 @@ const validationSchema = Yup.object().shape({
 
 export default function Register() {
   const router = useRouter();
+  const {showError} = useErrorToast();
 
   const {
     register,
@@ -35,20 +37,6 @@ export default function Register() {
     resolver: yupResolver(validationSchema),
   });
 
-  const onSubmit = async (data: FormData) => {
-    const response = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify(data),
-    });
-
-    if (response.ok) {
-      router.push("/login");
-    } else {
-      alert("Registration failed");
-    }
-  };
-
   const handleRegister = async (data: FormData) => {
     try {
       const response = await axios.post("/api/auth/register", data);
@@ -56,9 +44,9 @@ export default function Register() {
       router.push("/login");
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        alert(error.response?.data?.error || "Registration failed");
+        showError(error.response?.data?.error || "Registration failed");
       } else {
-        alert("An unexpected error occurred");
+        showError("An unexpected error occurred");
       }
     }
   };
@@ -112,7 +100,7 @@ export default function Register() {
             as={Link}
             href={"/login"}>
             {" "}
-            Sign up here
+            Sign in here
           </Body>
         </Body>
       </div>

@@ -2,7 +2,6 @@
 import Button from "@/components/atoms/Button";
 import Heading from "@/components/atoms/Heading";
 import FieldInput from "@/components/molecules/FieldInput";
-import {signIn} from "next-auth/react";
 import {useRouter} from "next/navigation";
 import {useForm} from "react-hook-form";
 import {yupResolver} from "@hookform/resolvers/yup";
@@ -11,6 +10,7 @@ import Link from "next/link";
 import Body from "@/components/atoms/Body";
 import axios from "axios";
 import {useState} from "react";
+import {useErrorToast} from "@/hooks/useErrorToast";
 
 type FormData = {
   email: string;
@@ -33,7 +33,8 @@ const validationSchema = Yup.object().shape({
 
 export default function Login() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false); // Loading state
+  const [isLoading, setIsLoading] = useState(false);
+  const {showError} = useErrorToast();
 
   const handleSSOLogin = async () => {
     setIsLoading(true);
@@ -43,10 +44,10 @@ export default function Login() {
       if (response.data.auth_url) {
         window.location.href = response.data.auth_url;
       } else {
-        alert("SSO URL not found");
+        showError("SSO URL not found");
       }
     } catch (error: any) {
-      alert(error.response?.data?.error || "SSO Login failed");
+      showError(error.response?.data?.error || "SSO Login failed");
     } finally {
       setIsLoading(false);
     }
@@ -59,12 +60,12 @@ export default function Login() {
       const {is_login_exact} = response.data;
 
       if (is_login_exact) {
-        window.location.href = "/";
+        window.location.href = "/dashboard";
       } else {
         await handleSSOLogin();
       }
     } catch (error: any) {
-      alert(error.response?.data?.error || "Failed to check login status");
+      showError(error.response?.data?.error || "Failed to check login status");
     } finally {
       setIsLoading(false);
     }
@@ -74,9 +75,11 @@ export default function Login() {
     setIsLoading(true);
     try {
       const response = await axios.post("/api/auth/login", data);
+      console.log("Login Response:", response.data);
+      localStorage.setItem("jwtToken", response.data.token);
       await checkLoginExact();
     } catch (error: any) {
-      alert(error.response?.data?.error || "Login failed");
+      showError(error.response?.data?.error || "login failed");
     } finally {
       setIsLoading(false);
     }
@@ -90,50 +93,6 @@ export default function Login() {
     defaultValues,
     resolver: yupResolver(validationSchema),
   });
-
-  const handleCallback = async () => {
-    setIsLoading(true);
-    try {
-      const code = "your_code_here"; // Replace with actual code
-      const state = "your_state_here"; // Replace with actual state
-      const bearerToken = "your_bearer_token_here"; // Replace with actual token
-
-      if (!bearerToken) {
-        console.error("Bearer token is missing");
-        return;
-      }
-
-      const response = await fetch(
-        `https://staging-symfony.admin-developer.com/connect/exact/callback?code=${encodeURIComponent(
-          code,
-        )}&state=${encodeURIComponent(state)}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${bearerToken}`,
-          },
-          credentials: "include",
-        },
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Error:", errorData.error || "Unknown error");
-        return;
-      }
-
-      const data = await response.json();
-      console.log("Success:", data);
-    } catch (error) {
-      console.error(
-        "Fetch error:",
-        error instanceof Error ? error.message : error,
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <div className="flex items-center justify-center min-h-screen">
@@ -172,15 +131,6 @@ export default function Login() {
             type="submit"
             disabled={isLoading}>
             {isLoading ? "Loading..." : "Sign In"}
-          </Button>
-
-          <Button
-            type="button"
-            size="lg"
-            className="w-full"
-            onClick={handleCallback}
-            disabled={isLoading}>
-            {isLoading ? "Loading..." : "Test Callback"}
           </Button>
         </form>
 

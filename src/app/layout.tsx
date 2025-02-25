@@ -1,17 +1,19 @@
 import type {Metadata} from "next";
-import {Geist, Geist_Mono} from "next/font/google";
+// import {Geist, Geist_Mono} from "next/font/google";
 import "./globals.css";
+import {ToastContainer} from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import {SessionProvider} from "next-auth/react";
 import Session from "@/components/layouts/Provider/SessionProvider";
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+// const geistSans = Geist({
+//   variable: "--font-geist-sans",
+//   subsets: ["latin"],
+// });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+// const geistMono = Geist_Mono({
+//   variable: "--font-geist-mono",
+//   subsets: ["latin"],
+// });
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -25,9 +27,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-error-danger-900 py-10 px-4`}>
+      <body className={` antialiased bg-error-danger-900 py-10 px-4`}>
         {children}
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          pauseOnHover
+          theme="light"
+        />
         {/* <Session>{children}</Session> */}
       </body>
     </html>

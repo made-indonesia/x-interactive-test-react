@@ -3,8 +3,6 @@ import Body from "@/components/atoms/Body";
 import Button from "@/components/atoms/Button";
 import Heading from "@/components/atoms/Heading";
 import FieldInput from "@/components/molecules/FieldInput";
-import PDFDisplay from "@/components/molecules/PDFDisplay";
-import axiosInstance from "@/lib/axiosInstance";
 import axios from "axios";
 import {useRouter} from "next/navigation";
 import {useState, useEffect} from "react";
@@ -23,7 +21,6 @@ export default function Dashboard() {
         const response = await axios.get("/api/customers");
         setCustomers(response.data.data);
         setFilteredCustomers(response.data.data);
-        console.log("Fetched Customers:", response.data.data);
       } catch (error) {
         console.error("Failed to fetch customers:", error);
       } finally {
@@ -39,7 +36,6 @@ export default function Dashboard() {
       try {
         const response = await axios.get("/api/me");
         setUser(response.data.email);
-        console.log("Fetched User:", response.data);
       } catch (error) {
         console.error("Failed to fetch user:", error);
       }
@@ -52,6 +48,7 @@ export default function Dashboard() {
     if (confirm("Are you sure you want to logout?")) {
       try {
         await axios.get("/api/logout");
+        localStorage.removeItem("jwtToken");
         router.push("/login");
       } catch (error) {
         console.error("Logout failed:", error);
@@ -80,11 +77,16 @@ export default function Dashboard() {
 
   const handleSelectCustomer = async (id: string) => {
     try {
-      const response = await axiosInstance.get(`/customer/${id}`);
-      console.log("Customer Data:", response.data);
-      alert(`Fetched data for Customer ID: ${id}`);
+      const response = await axios.get(`/api/customer/${id}`, {
+        responseType: "blob",
+      });
+
+      const pdfBlob = new Blob([response.data], {type: "application/pdf"});
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+
+      window.open(pdfUrl, "_blank");
     } catch (error) {
-      console.error("Failed to fetch customer data:", error);
+      console.error("Failed to fetch customer PDF:", error);
     }
   };
 
@@ -106,7 +108,9 @@ export default function Dashboard() {
             Logout
           </Button>
         </div>
-        <Body>halo {user}</Body>
+        <Body as="p" className="text-black">
+          halo {user}
+        </Body>
         <div className="flex items-end gap-4">
           <FieldInput
             label="Filter Customer"
@@ -124,15 +128,15 @@ export default function Dashboard() {
           <div className="mt-6 text-center text-gray-500">Loading...</div>
         ) : (
           <div className="mt-6">
-            <Heading variant="h6" as="h3" className="text-black mb-2">
+            <Body as="p" className="text-black mb-2">
               Customers List
-            </Heading>
+            </Body>
             {filteredCustomers?.length > 0 ? (
               <ul className="space-y-2">
                 {filteredCustomers?.map((customer: any) => (
                   <li
                     key={customer.id}
-                    className="cursor-pointer p-2 border rounded hover:bg-gray-100"
+                    className="cursor-pointer p-2 border rounded hover:bg-gray-100 text-black"
                     onClick={() => handleSelectCustomer(customer.id)}>
                     {customer.name}
                   </li>
@@ -143,8 +147,6 @@ export default function Dashboard() {
             )}
           </div>
         )}
-
-        {/* <PDFDisplay /> */}
       </div>
     </div>
   );
