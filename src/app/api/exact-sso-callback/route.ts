@@ -50,7 +50,7 @@ export async function GET(request: Request) {
     const data = await response.json();
 
     const res = NextResponse.redirect(
-      process.env.NEXT_PUBLIC_API_BASE_URL || "/dashboard",
+      process.env.NEXT_PUBLIC_BASE_URL || "/dashboard",
     );
 
     if (data.access_token) {
