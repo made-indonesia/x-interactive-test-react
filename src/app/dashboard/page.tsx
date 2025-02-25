@@ -3,6 +3,7 @@ import Body from "@/components/atoms/Body";
 import Button from "@/components/atoms/Button";
 import Heading from "@/components/atoms/Heading";
 import FieldInput from "@/components/molecules/FieldInput";
+import {useErrorToast} from "@/hooks/useErrorToast";
 import axios from "axios";
 import {useRouter} from "next/navigation";
 import {useState, useEffect} from "react";
@@ -14,6 +15,7 @@ export default function Dashboard() {
   const [customerId, setCustomerId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const {showError} = useErrorToast();
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -36,6 +38,9 @@ export default function Dashboard() {
       try {
         const response = await axios.get("/api/me");
         setUser(response.data.email);
+        if (!response.data.is_login_exact) {
+          handleSSOLogin();
+        }
       } catch (error) {
         console.error("Failed to fetch user:", error);
       }
@@ -43,7 +48,20 @@ export default function Dashboard() {
 
     fetchUser();
   }, []);
+  const handleSSOLogin = async () => {
+    try {
+      const response = await axios.get("/api/exact-sso");
 
+      if (response.data.auth_url) {
+        window.location.href = response.data.auth_url;
+      } else {
+        showError("SSO URL not found");
+      }
+    } catch (error: any) {
+      showError(error.response?.data?.error || "SSO Login failed");
+    } finally {
+    }
+  };
   const handleLogout = async () => {
     if (confirm("Are you sure you want to logout?")) {
       try {
