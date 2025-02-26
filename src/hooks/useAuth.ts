@@ -10,6 +10,7 @@ interface LoginData {
 
 export const useAuth = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState("");
   const {showError} = useErrorToast();
   const router = useRouter();
 
@@ -91,12 +92,30 @@ export const useAuth = () => {
     }
   };
 
+  const fetchUser = async () => {
+    try {
+      const response = await axios.get("/api/me");
+      setUser(response.data.email);
+      if (!response.data.is_login_exact) {
+        handleSSOLogin();
+      }
+    } catch (error) {
+      console.error("Failed to fetch user:", error);
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        console.warn("Unauthorized! Redirecting to login...");
+        router.push("/login");
+      }
+    }
+  };
+
   return {
     isLoading,
+    user,
     handleLogin,
     handleLogout,
     handleSSOLogin,
     checkLoginExact,
     handleRegister,
+    fetchUser,
   };
 };
