@@ -11,6 +11,7 @@ import Body from "@/components/atoms/Body";
 import axios from "axios";
 import {useState} from "react";
 import {useErrorToast} from "@/hooks/useErrorToast";
+import {useAuth} from "@/hooks/useAuth";
 
 type FormData = {
   email: string;
@@ -32,57 +33,7 @@ const validationSchema = Yup.object().shape({
 });
 
 export default function Login() {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const {showError} = useErrorToast();
-
-  const handleSSOLogin = async () => {
-    setIsLoading(true);
-    try {
-      const response = await axios.get("/api/exact-sso");
-
-      if (response.data.auth_url) {
-        window.location.href = response.data.auth_url;
-      } else {
-        showError("SSO URL not found");
-      }
-    } catch (error: any) {
-      showError(error.response?.data?.error || "SSO Login failed");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const checkLoginExact = async () => {
-    setIsLoading(true);
-    try {
-      const response = await axios.get("/api/me/");
-      const {is_login_exact} = response.data;
-
-      if (is_login_exact) {
-        window.location.href = "/dashboard";
-      } else {
-        await handleSSOLogin();
-      }
-    } catch (error: any) {
-      showError(error.response?.data?.error || "Failed to check login status");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleLogin = async (data: {email: string; password: string}) => {
-    setIsLoading(true);
-    try {
-      const response = await axios.post("/api/auth/login", data);
-      localStorage.setItem("jwtToken", response.data.token);
-      await checkLoginExact();
-    } catch (error: any) {
-      showError(error.response?.data?.error || "login failed");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const {handleLogin, isLoading} = useAuth();
 
   const {
     register,

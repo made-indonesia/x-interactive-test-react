@@ -4,7 +4,7 @@ import Button from "@/components/atoms/Button";
 import Heading from "@/components/atoms/Heading";
 import List from "@/components/atoms/list";
 import FieldInput from "@/components/molecules/FieldInput";
-import {useErrorToast} from "@/hooks/useErrorToast";
+import {useAuth} from "@/hooks/useAuth";
 import axios from "axios";
 import {useRouter} from "next/navigation";
 import {useState, useEffect} from "react";
@@ -15,9 +15,8 @@ export default function Dashboard() {
   const [filteredCustomers, setFilteredCustomers] = useState([]);
   const [customerId, setCustomerId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const {handleSSOLogin, handleLogout} = useAuth();
   const router = useRouter();
-  const {showError} = useErrorToast();
-
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -26,6 +25,10 @@ export default function Dashboard() {
         setFilteredCustomers(response.data.data);
       } catch (error) {
         console.error("Failed to fetch customers:", error);
+        if (axios.isAxiosError(error) && error.response?.status === 401) {
+          console.warn("Unauthorized! Redirecting to login...");
+          router.push("/login");
+        }
       } finally {
         setIsLoading(false);
       }
@@ -44,36 +47,15 @@ export default function Dashboard() {
         }
       } catch (error) {
         console.error("Failed to fetch user:", error);
+        if (axios.isAxiosError(error) && error.response?.status === 401) {
+          console.warn("Unauthorized! Redirecting to login...");
+          router.push("/login");
+        }
       }
     };
 
     fetchUser();
   }, []);
-  const handleSSOLogin = async () => {
-    try {
-      const response = await axios.get("/api/exact-sso");
-
-      if (response.data.auth_url) {
-        window.location.href = response.data.auth_url;
-      } else {
-        showError("SSO URL not found");
-      }
-    } catch (error: any) {
-      showError(error.response?.data?.error || "SSO Login failed");
-    } finally {
-    }
-  };
-  const handleLogout = async () => {
-    if (confirm("Are you sure you want to logout?")) {
-      try {
-        await axios.get("/api/logout");
-        localStorage.removeItem("jwtToken");
-        router.push("/login");
-      } catch (error) {
-        console.error("Logout failed:", error);
-      }
-    }
-  };
 
   const handleFilter = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -101,6 +83,10 @@ export default function Dashboard() {
       window.open(pdfUrl, "_blank");
     } catch (error) {
       console.error("Failed to fetch customer PDF:", error);
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        console.warn("Unauthorized! Redirecting to login...");
+        router.push("/login");
+      }
     }
   };
 
@@ -122,12 +108,11 @@ export default function Dashboard() {
             Logout
           </Button>
         </div>
-        <Body as="p" className="text-black">
+        <Body as="p" className="text-black mb-3">
           halo {user}
         </Body>
         <div className="flex items-end gap-4">
           <FieldInput
-            label="Filter Customer"
             placeholder="Type customer name"
             className="text-black"
             value={customerId}
@@ -152,7 +137,7 @@ export default function Dashboard() {
                   <Body
                     key={customer.id}
                     as="li"
-                    variant="xs"
+                    variant="md"
                     weight="medium"
                     className="cursor-pointer p-2 border rounded hover:bg-gray-100 text-black font-medium list-none"
                     onClick={() => handleSelectCustomer(customer.id)}>

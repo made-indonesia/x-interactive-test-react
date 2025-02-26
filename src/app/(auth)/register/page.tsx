@@ -4,12 +4,10 @@ import Button from "@/components/atoms/Button";
 import Heading from "@/components/atoms/Heading";
 import FieldInput from "@/components/molecules/FieldInput";
 import Link from "next/link";
-import {useRouter} from "next/navigation";
 import {useForm} from "react-hook-form";
 import {yupResolver} from "@hookform/resolvers/yup";
 import * as Yup from "yup";
-import axios from "axios";
-import {useErrorToast} from "@/hooks/useErrorToast";
+import {useAuth} from "@/hooks/useAuth";
 
 type FormData = {
   email: string;
@@ -26,8 +24,7 @@ const validationSchema = Yup.object().shape({
 });
 
 export default function Register() {
-  const router = useRouter();
-  const {showError} = useErrorToast();
+  const {handleRegister} = useAuth();
 
   const {
     register,
@@ -36,20 +33,6 @@ export default function Register() {
   } = useForm<FormData>({
     resolver: yupResolver(validationSchema),
   });
-
-  const handleRegister = async (data: FormData) => {
-    try {
-      const response = await axios.post("/api/auth/register", data);
-
-      router.push("/login");
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        showError(error.response?.data?.error || "Registration failed");
-      } else {
-        showError("An unexpected error occurred");
-      }
-    }
-  };
 
   return (
     <div className="flex items-center justify-center min-h-screen ">
